@@ -43,6 +43,8 @@ class ExecutableFinder(ReprObject):
             # Remove new line.
             return out[:-1]
 
+    __call__ = find
+
 
 find_executable = ExecutableFinder().find
 
@@ -63,8 +65,10 @@ class PathResolver(ReprObject):
     def __str__(self):
         return 'PathResolver(origin: %r)' % self.origin
 
-    def __call__(self, relative):
+    def resolve(self, relative):
         return os.path.abspath(os.path.join(self.origin, relative))
+
+    __call__ = resolve
 
     @classmethod
     def file_origin(cls, file_path):
