@@ -30,7 +30,8 @@ class ExecutableFinder(ReprObject):
             args.append('-a')
         args.extend(('--', executable_name))
         try:
-            out = subprocess.check_output(args)
+            with open(os.devnull, 'w') as devnull:
+                out = subprocess.check_output(args, stderr=devnull)
         except subprocess.CalledProcessError, e:
             if not no_raise or e.returncode != self.error_code_not_found:
                 raise e
