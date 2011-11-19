@@ -1,6 +1,11 @@
+from __future__ import absolute_import, division, print_function
+import inspect
+import os
 import subprocess
 
-class ExecutableFinder(object):
+from foxxy import ReprObject
+
+class ExecutableFinder(ReprObject):
     error_code_not_found = 1
     default_which_path = '/usr/bin/which'
 
@@ -40,4 +45,38 @@ class ExecutableFinder(object):
 
 
 find_executable = ExecutableFinder().find
+
+def _calling_module():
+    stack = inspect.stack()
+    this_module = stack[-1][0]
+    for frame in stack[::-2]:
+        module = inspect.getmodule(frame[0])
+        if module != this_module:
+            return module
+    raise ValueError('Could not get calling module.')
+
+class PathResolver(ReprObject):
+    def __init__(self, origin_directory):
+        super(PathResolver, self).__init__()
+        self.origin = origin_directory
+
+    def __str__(self):
+        return 'PathResolver(origin: %r)' % self.origin
+
+    def __call__(self, relative):
+        return os.path.abspath(os.path.join(self.origin, relative))
+
+    @classmethod
+    def file_origin(cls, file_path):
+        return cls(os.path.dirname(file_path))
+
+    @classmethod
+    def module_origin(cls, module):
+        return cls.file_origin(module.__file__)
+
+
+def module_resolver(module=None):
+    if module is None:
+        module = _calling_module()
+    return PathResolver.module_origin(module)
 
