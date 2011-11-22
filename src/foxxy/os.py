@@ -53,7 +53,7 @@ class ExecutableFinder(ReprObject):
 find_executable = ExecutableFinder().find
 
 def resolve(origin, relative):
-    return os.path.abspath(os.path.join(self.origin, relative))
+    return os.path.abspath(os.path.join(origin, relative))
 
 class PathResolver(ReprObject):
     def __init__(self, origin_directory):
