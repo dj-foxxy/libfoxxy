@@ -5,6 +5,9 @@ import subprocess
 
 from foxxy import ReprObject
 
+def hostname():
+    return os.uname()[1]
+
 class ExecutableFinder(ReprObject):
     error_code_not_found = 1
     default_which_path = '/usr/bin/which'
@@ -49,25 +52,19 @@ class ExecutableFinder(ReprObject):
 
 find_executable = ExecutableFinder().find
 
-def _calling_module():
-    stack = inspect.stack()
-    this_module = stack[-1][0]
-    for frame in stack[::-2]:
-        module = inspect.getmodule(frame[0])
-        if module != this_module:
-            return module
-    raise ValueError('Could not get calling module.')
+def resolve(origin, relative):
+    return os.path.abspath(os.path.join(self.origin, relative))
 
 class PathResolver(ReprObject):
     def __init__(self, origin_directory):
         super(PathResolver, self).__init__()
-        self.origin = origin_directory
+        self.origin = os.path.abspath(origin_directory)
 
     def __str__(self):
         return 'PathResolver(origin: %r)' % self.origin
 
     def resolve(self, relative):
-        return os.path.abspath(os.path.join(self.origin, relative))
+        return resolve(self.origin, relative)
 
     __call__ = resolve
 
@@ -81,7 +78,15 @@ class PathResolver(ReprObject):
 
 
 def module_resolver(module=None):
+    def calling_module():
+        stack = inspect.stack()
+        this_module = stack[-1][0]
+        for frame in stack[::-2]:
+            module = inspect.getmodule(frame[0])
+            if module != this_module:
+                return module
+        raise ValueError('Could not get calling module.')
     if module is None:
-        module = _calling_module()
+        module = calling_module()
     return PathResolver.module_origin(module)
 
