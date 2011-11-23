@@ -81,7 +81,7 @@ def module_resolver(module=None):
     def calling_module():
         stack = inspect.stack()
         this_module = stack[-1][0]
-        for frame in stack[::-2]:
+        for frame in stack[:-2]:
             module = inspect.getmodule(frame[0])
             if module != this_module:
                 return module
