@@ -1,14 +1,14 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 import inspect
 import os
 import subprocess
 
-from foxxy import ReprObject
-
 def hostname():
     return os.uname()[1]
 
-class ExecutableFinder(ReprObject):
+class ExecutableFinder(object):
     error_code_not_found = 1
     default_which_path = '/usr/bin/which'
 
@@ -52,41 +52,27 @@ class ExecutableFinder(ReprObject):
 
 find_executable = ExecutableFinder().find
 
-def resolve(origin, relative):
-    return os.path.abspath(os.path.join(origin, relative))
-
-class PathResolver(ReprObject):
-    def __init__(self, origin_directory):
+class PathResolver(object):
+    def __init__(self, origin_directory, absolute=False):
         super(PathResolver, self).__init__()
-        self.origin = os.path.abspath(origin_directory)
+        self.origin = origin_directory
+        self.absolute = absolute
 
     def __str__(self):
         return 'PathResolver(origin: %r)' % self.origin
 
-    def resolve(self, relative):
-        return resolve(self.origin, relative)
+    def resolve(self, relative, absolute=None):
+        if absolute is None:
+            absolute = self.absolute
+        path = os.path.join(self.origin, relative)
+        if absolute:
+            path = os.path.abspath(path)
+        return path
 
     __call__ = resolve
 
     @classmethod
-    def file_origin(cls, file_path):
-        return cls(os.path.dirname(file_path))
+    def file_origin(cls, file_path, *args, **kwargs):
+        return cls(os.path.dirname(file_path), *args, **kwargs)
 
-    @classmethod
-    def module_origin(cls, module):
-        return cls.file_origin(module.__file__)
-
-
-def module_resolver(module=None):
-    def calling_module():
-        stack = inspect.stack()
-        this_module = stack[-1][0]
-        for frame in stack[:-2]:
-            module = inspect.getmodule(frame[0])
-            if module != this_module:
-                return module
-        raise ValueError('Could not get calling module.')
-    if module is None:
-        module = calling_module()
-    return PathResolver.module_origin(module)
 
