@@ -76,3 +76,5 @@ class PathResolver(object):
         return cls(os.path.dirname(file_path), *args, **kwargs)
 
 
+def get_file_resolver(origin_file_path):
+    return PathResolver.file_origin(origin_file_path).resolve
