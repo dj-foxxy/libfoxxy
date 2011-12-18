@@ -5,6 +5,16 @@ import inspect
 import os
 import subprocess
 
+def does_process_exist(pid):
+    try:
+        os.kill(pid, 0)
+    except OSError, e:
+        # Error number 3 is no such process.
+        if e.errno == 3:
+            return False
+        raise e
+    return True
+
 def hostname():
     return os.uname()[1]
 
@@ -76,3 +86,4 @@ class PathResolver(object):
 
 def get_file_resolver(origin_file_path):
     return PathResolver.file_origin(origin_file_path).resolve
+
