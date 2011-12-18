@@ -1,0 +1,11 @@
+libfoxxy
+========
+
+A collection of Python utilities.
+
+I've been programming in Python for five years now. In this time, I've written
+the same things time and time again. libfoxxy is my effort to prevent this.
+
+**Warning**: This is my personal library, there is no stable API. I will change
+things when ever and how ever I want.
+
