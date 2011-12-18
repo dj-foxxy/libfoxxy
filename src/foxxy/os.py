@@ -62,10 +62,8 @@ class PathResolver(object):
         return 'PathResolver(origin: %r)' % self.origin
 
     def resolve(self, relative, absolute=None):
-        if absolute is None:
-            absolute = self.absolute
         path = os.path.join(self.origin, relative)
-        if absolute:
+        if absolute or (absolute is None and self.absolute):
             path = os.path.abspath(path)
         return path
 
