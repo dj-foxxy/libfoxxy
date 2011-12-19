@@ -9,16 +9,16 @@ import sys
 from foxxy.os import does_process_exist
 
 def _flush_stdio():
-    for stdfile in (sys.stdin, sys.stdout, sys.stderr):
+    for stdfile in (sys.stdout, sys.stderr):
         stdfile.flush()
 
 class Daemon(object):
-    def __init__(self, pid_path, stdin_path=os.devnull, stdout_path=os.devnull,
-                 stderr_path=os.devnull):
+    def __init__(self, pid_path, stdin=os.devnull, stdout=os.devnull,
+                 stderr=os.devnull):
         self._pid_path = pid_path
-        self._stdin_path = stdin_path
-        self._stdout_path = stdout_path
-        self._stderr_path = stderr_path
+        self._stdin = stdin
+        self._stdout = stdout
+        self._stderr = stderr
 
     def _daemonize(self):
         '''Daemonize process, true if this is the daemon process.'''
@@ -28,10 +28,15 @@ class Daemon(object):
             return False
 
         # Don't lose relative files when we chdir.
-        pid_path = os.path.abspath(self._pid_path)
-        stdin_path = os.path.abspath(self._stdin_path)
-        stdout_path = os.path.abspath(self._stdout_path)
-        stderr_path = os.path.abspath(self._stderr_path)
+        def ensure_abspath_if_path(possible_path):
+            if isinstance(possible_path, str):
+                return os.path.abspath(possible_path)
+            return possible_path
+
+        pid_path = ensure_abspath_if_path(self._pid_path)
+        stdin = ensure_abspath_if_path(self._stdin)
+        stdout = ensure_abspath_if_path(self._stdout)
+        stderr = ensure_abspath_if_path(self._stderr)
 
         os.chdir('/')
         os.setsid()
@@ -51,9 +56,14 @@ class Daemon(object):
         _flush_stdio()
 
         # Redirect all standard IO.
-        stdin = open(stdin_path)
-        stdout = open(stdout_path, 'a')
-        stderr = open(stderr_path, 'a')
+        def open_if_path(possible_path, *args, **kwargs):
+            if isinstance(possible_path, str):
+                return open(possible_path, *args, **kwargs)
+            return possible_path
+
+        stdin = open_if_path(stdin)
+        stdout = open_if_path(stdout, 'a')
+        stderr = open_if_path(stderr, 'a')
         os.dup2(stdin.fileno(), sys.stdin.fileno())
         os.dup2(stdout.fileno(), sys.stdout.fileno())
         os.dup2(stderr.fileno(), sys.stderr.fileno())
@@ -77,11 +87,11 @@ class Daemon(object):
             return does_process_exist(self._read_pid_file())
         return False
 
-    def start(self):
+    def start(self, *args, **kwargs):
         if self.is_running():
             raise ValueError('daemon already running')
         if self._daemonize():
-            self.run()
+            self.run(*args, **kwargs)
 
     def stop(self):
         if not self.is_running():
@@ -95,7 +105,7 @@ class Daemon(object):
         else:
             self.start()
 
-    def run(self):
+    def run(self, *args, **kwargs):
         raise NotImplemented('subclass does not implement run()')
 
 
