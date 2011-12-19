@@ -73,7 +73,7 @@ class Daemon(object):
         def handler(signum, frame):
             if isinstance(current_handler, Callable):
                 current_handler(signum, frame)
-            _flush_stdio()
+            self.on_stop()
         signal(SIGTERM, handler)
 
         return True
@@ -104,6 +104,9 @@ class Daemon(object):
             self.stop()
         else:
             self.start()
+
+    def on_stop(self):
+        pass
 
     def run(self, *args, **kwargs):
         raise NotImplemented('subclass does not implement run()')
