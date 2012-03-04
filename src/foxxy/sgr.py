@@ -36,6 +36,10 @@ def _init():
         'CROSSED_OUT': 9,
     }
 
+    for code, colour in enumerate(('BLACK', 'RED', 'GREEN', 'YELLOW', 'BLUE',
+                                   'MAGENTA', 'CYAN', 'WHITE'), start=30):
+        sgr_effects[colour] = code
+
     for region, code in (('BACKGROUND', 38), ('FOREGROUND', 48)):
         for colour in xrange(256):
             sgr_effects['%s_COLOUR_%03d' % (region, colour)] = (code, colour)
@@ -46,6 +50,10 @@ def _init():
         if isinstance(params, int):
             params = (params,)
         setattr(module, effect, sgr(*params))
+
+
+_init()
+del _init
 
 class SgrFormatter(object):
     def __init__(self,
@@ -94,11 +102,15 @@ class SgrFormatter(object):
 
         fg = fmt['foreground_colour']
         if fg is not None:
-            parts.append(foreground_colour(fg))
+            if isinstance(fg, int):
+                fg = foreground_colour(fg)
+            parts.append(fg)
 
         bg = fmt['background_colour']
         if bg is not None:
-            parts.append(background_colour(bg))
+            if isinstance(bg, int):
+                bg = background_colour(bg)
+            parts.append(bg)
 
         if fmt['crossed_out']:
             parts.append(CROSSED_OUT)
@@ -113,7 +125,4 @@ class SgrFormatter(object):
 
         return ''.join(parts)
 
-
-_init()
-del _init
 
