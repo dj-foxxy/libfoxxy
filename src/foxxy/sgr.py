@@ -18,14 +18,16 @@ def sgr(*params):
 def build_colour(region, colour):
     if colour < 0 or colour > 255:
         raise ValueError('colour must be between 0 and 255 (inclusive)')
-    # I'm sure exactly what '5' means here.
+    # I don't know the semantics of the value 5, but it's critical.
     return sgr(region, 5, colour)
 
 def background_colour(colour):
     return build_colour(SGR_CODE_BACKGROUND, colour)
+bg = background_colour
 
 def foreground_colour(colour):
     return build_colour(SGR_CODE_FOREGROUND, colour)
+fg = foreground_colour
 
 def _init():
     sgr_effects = {
@@ -40,17 +42,12 @@ def _init():
                                    'MAGENTA', 'CYAN', 'WHITE'), start=30):
         sgr_effects[colour] = code
 
-    for region, code in (('BACKGROUND', 38), ('FOREGROUND', 48)):
-        for colour in xrange(256):
-            sgr_effects['%s_COLOUR_%03d' % (region, colour)] = (code, colour)
-
     module = sys.modules[__name__]
 
     for effect, params in sgr_effects.iteritems():
         if isinstance(params, int):
             params = (params,)
         setattr(module, effect, sgr(*params))
-
 
 _init()
 del _init

@@ -4,5 +4,5 @@ set -o nounset
 readonly REPO="$(readlink -f -- "$(dirname -- "${0}")/..")"
 cd -- "${REPO}"
 
-sudo python setup.py install
+sudo python2 setup.py install
 
